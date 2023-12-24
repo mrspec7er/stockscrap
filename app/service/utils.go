@@ -80,8 +80,8 @@ func DataScrapper()  {
 
 }
 
-func GetStockHistory(symbol string, fromDate string, toDate string) {
-	res, err := http.Get("https://api.goapi.io/stock/idx/ASII/historical?from=2020-01-02&to=2021-01-01&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
+func GetStockHistory(symbol string, fromDate string, toDate string) []*StockHistory {
+	res, err := http.Get("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -99,7 +99,9 @@ func GetStockHistory(symbol string, fromDate string, toDate string) {
 		fmt.Println(err.Error())
 	}
 
-	for _, s := range convertedData.Data.Results {
-		fmt.Println(s)
-	}
+	// for _, s := range convertedData.Data.Results {
+	// 	fmt.Println(s)
+	// }
+
+	return convertedData.Data.Results
 }
