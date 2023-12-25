@@ -8,35 +8,8 @@ import (
 	"slices"
 
 	"github.com/gocolly/colly"
+	"github.com/mrspec7er/stockscrap/app/dto"
 )
-
-type Statistic struct {
-	Label string
-	Value string
-}
-
-type Recommendation struct {
-	Title string 
-	Body string
-}
-
-type StockHistory struct {
-	Symbol string `json:"symbol"`
-	Date string `json:"date"`
-	Open int `json:"open"`
-	Close int `json:"close"`
-	High int `json:"high"`
-	Low int `json:"low"`
-	Volume float64 `json:"volume"`
-}
-
-type StockHistoryApiResponse struct {
-	Status string `json:"status"`
-	Message string `json:"message"`
-	Data struct {
-		Results []*StockHistory `json:"results"`
-	} `json:"data"`
-}
 
 type UtilService struct {}
 
@@ -56,14 +29,14 @@ func (UtilService) DataScrapper()  {
 		
 	})
 
-	var recommendation []*Recommendation
+	var recommendation []*dto.Recommendation
 
 	c.OnHTML(".card-exterior-Us1ZHpvJ", func(e *colly.HTMLElement) {
 		
 		title := e.DOM.Find(".title-tkslJwxl").Text()
 		body := e.DOM.Find(".line-clamp-content-t3qFZvNN").Text()
 
-		recommendation = append(recommendation, &Recommendation{Title: title, Body: body})
+		recommendation = append(recommendation, &dto.Recommendation{Title: title, Body: body})
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -83,7 +56,7 @@ func (UtilService) DataScrapper()  {
 
 }
 
-func (UtilService) GetStockHistory(symbol string, fromDate string, toDate string) ([]*StockHistory, error) {
+func (UtilService) GetStockHistory(symbol string, fromDate string, toDate string) ([]*dto.StockHistory, error) {
 	res, err := http.Get("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
 	fmt.Println("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
 
@@ -97,7 +70,7 @@ func (UtilService) GetStockHistory(symbol string, fromDate string, toDate string
 		return nil, err
 	}
 
-	convertedData := StockHistoryApiResponse{}
+	convertedData := dto.StockHistoryApiResponse{}
 	err = json.Unmarshal(streamData, &convertedData)
 	if err != nil {
 		return nil, err
