@@ -38,7 +38,9 @@ type StockHistoryApiResponse struct {
 	} `json:"data"`
 }
 
-func DataScrapper()  {	
+type UtilService struct {}
+
+func (UtilService) DataScrapper()  {	
 	c := colly.NewCollector(
 		colly.AllowedDomains("id.tradingview.com"),
 	)
@@ -81,7 +83,7 @@ func DataScrapper()  {
 
 }
 
-func GetStockHistory(symbol string, fromDate string, toDate string) ([]*StockHistory, error) {
+func (UtilService) GetStockHistory(symbol string, fromDate string, toDate string) ([]*StockHistory, error) {
 	res, err := http.Get("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
 	fmt.Println("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
 
@@ -100,10 +102,6 @@ func GetStockHistory(symbol string, fromDate string, toDate string) ([]*StockHis
 	if err != nil {
 		return nil, err
 	}
-
-	// for _, s := range convertedData.Data.Results {
-	// 	fmt.Println(s)
-	// }
 
 	result := convertedData.Data.Results
 

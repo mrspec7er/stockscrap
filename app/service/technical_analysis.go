@@ -23,27 +23,31 @@ type StockQuarterHistories struct {
 	Quarters  []*QuarterHistory
 }
 
-func GetQuarterHistories(symbol string, fromYear int) (StockQuarterHistories, error) {
+type TechnicalService struct{
+	Utils UtilService
+}
+
+func (s TechnicalService) GetQuarterHistories(symbol string, fromYear int) (StockQuarterHistories, error) {
 	quarters := []*QuarterHistory{}
 
 	for i := fromYear; i < time.Now().Year(); i++ {
 
-		histories, err := GetStockHistory(symbol, strconv.Itoa(i) + "-01-02", strconv.Itoa(i + 1) + "-01-01")
+		histories, err := s.Utils.GetStockHistory(symbol, strconv.Itoa(i) + "-01-02", strconv.Itoa(i + 1) + "-01-01")
 
 		if err != nil {
 			return StockQuarterHistories{}, err
 		}
 
-		Q1Low, Q1High := GetQuarterSupportResistance(histories, 0, 62)
+		Q1Low, Q1High := s.GetQuarterSupportResistance(histories, 0, 62)
 		quarters = append(quarters, &QuarterHistory{Quarter: strconv.Itoa(i) + "-Q1", High: Q1High, Low: Q1Low})
 
-		Q2Low, Q2High := GetQuarterSupportResistance(histories, 63, 124)
+		Q2Low, Q2High := s.GetQuarterSupportResistance(histories, 63, 124)
 		quarters = append(quarters, &QuarterHistory{Quarter: strconv.Itoa(i) + "-Q2", High: Q2High, Low: Q2Low})
 
-		Q3Low, Q3High := GetQuarterSupportResistance(histories, 125, 188)
+		Q3Low, Q3High := s.GetQuarterSupportResistance(histories, 125, 188)
 		quarters = append(quarters, &QuarterHistory{Quarter: strconv.Itoa(i) + "-Q3", High: Q3High, Low: Q3Low})
 
-		Q4Low, Q4High := GetQuarterSupportResistance(histories, 189, len(histories))
+		Q4Low, Q4High := s.GetQuarterSupportResistance(histories, 189, len(histories))
 		quarters = append(quarters, &QuarterHistory{Quarter: strconv.Itoa(i) + "-Q4", High: Q4High, Low: Q4Low})
 		
 	}
@@ -58,7 +62,7 @@ func GetQuarterHistories(symbol string, fromYear int) (StockQuarterHistories, er
 	return StockQuarterHistories{AverageResistance: averageResistance / len(quarters), AverageSupport: averageSupport / len(quarters), Quarters: quarters}, nil
 }
 
-func GetQuarterSupportResistance(histories []*StockHistory, startRange int, endRange int) (support QuarterDetail, resistance QuarterDetail) {
+func (s TechnicalService) GetQuarterSupportResistance(histories []*StockHistory, startRange int, endRange int) (support QuarterDetail, resistance QuarterDetail) {
 	supportPrice := 9999999999
 	supportDate := "2000-01-02"
 	supportVolume := float64(0) 

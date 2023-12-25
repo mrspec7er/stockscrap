@@ -5,6 +5,13 @@ import (
 	"github.com/mrspec7er/stockscrap/app/service"
 )
 
+type TechnicalResolver struct {
+	Technical service.TechnicalService
+	Utils service.UtilService
+}
+
+var r TechnicalResolver
+
 var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 	Name: "RootQuery",
 	Fields: graphql.Fields{
@@ -27,7 +34,7 @@ var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 				fromDate := p.Args["fromDate"].(string)
 				toDate := p.Args["toDate"].(string)
 				
-				result, err := service.GetStockHistory(symbol, fromDate, toDate)
+				result, err := r.Utils.GetStockHistory(symbol, fromDate, toDate)
 				if err != nil {
 					return nil, err
 				}
@@ -50,7 +57,7 @@ var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 				symbol := p.Args["symbol"].(string)
 				fromYear := p.Args["fromYear"].(int)
 				
-				result, err := service.GetQuarterHistories(symbol, fromYear)
+				result, err := r.Technical.GetQuarterHistories(symbol, fromYear)
 				
 				if err != nil {
 					return nil, err
