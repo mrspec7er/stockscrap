@@ -1,7 +1,9 @@
 package service
 
 import (
+	"log"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/mrspec7er/stockscrap/app/dto"
@@ -13,29 +15,24 @@ type TechnicalService struct{
 	Utils UtilService
 }
 
-func (s TechnicalService) GetQuarterHistories(symbol string, fromYear int) (dto.StockQuarterHistories, error) {
+func (s TechnicalService) GetQuarterAnalysis(symbol string, fromYear int) (dto.StockQuarterHistories, error) {
 	quarters := []*dto.QuarterHistory{}
 
+	ctx := make(chan []*dto.QuarterHistory, (time.Now().Year()) - fromYear + 1)
+	wg := &sync.WaitGroup{}
+	wg.Add(time.Now().Year() - fromYear + 1)
+
 	for i := fromYear; i <= time.Now().Year(); i++ {
-
-		histories, err := s.Utils.GetStockHistory(symbol, strconv.Itoa(i) + "-01-02", strconv.Itoa(i + 1) + "-01-01")
-
-		if err != nil {
-			return dto.StockQuarterHistories{}, err
-		}
-
-		Q1Low, Q1High := s.GetQuarterSupportResistance(histories, 0, 62)
-		quarters = append(quarters, &dto.QuarterHistory{Quarter: strconv.Itoa(i) + "-Q1", High: Q1High, Low: Q1Low})
-
-		Q2Low, Q2High := s.GetQuarterSupportResistance(histories, 63, 124)
-		quarters = append(quarters, &dto.QuarterHistory{Quarter: strconv.Itoa(i) + "-Q2", High: Q2High, Low: Q2Low})
-
-		Q3Low, Q3High := s.GetQuarterSupportResistance(histories, 125, 188)
-		quarters = append(quarters, &dto.QuarterHistory{Quarter: strconv.Itoa(i) + "-Q3", High: Q3High, Low: Q3Low})
-
-		Q4Low, Q4High := s.GetQuarterSupportResistance(histories, 189, len(histories))
-		quarters = append(quarters, &dto.QuarterHistory{Quarter: strconv.Itoa(i) + "-Q4", High: Q4High, Low: Q4Low})
 		
+		go s.GetQuarterHistories(symbol, i, ctx, wg)
+		
+	}
+
+	wg.Wait()
+	close(ctx)
+
+	for quarter := range ctx {
+		quarters = append(quarters, quarter...)
 	}
 
 	averageSupport := 0
@@ -46,6 +43,31 @@ func (s TechnicalService) GetQuarterHistories(symbol string, fromYear int) (dto.
 	}
 
 	return dto.StockQuarterHistories{AverageResistance: averageResistance / len(quarters), AverageSupport: averageSupport / len(quarters), Quarters: quarters}, nil
+}
+
+func (s TechnicalService) GetQuarterHistories(symbol string, year int, ctx chan []*dto.QuarterHistory, wg *sync.WaitGroup) {
+	quarters := []*dto.QuarterHistory{}
+	histories, err := s.Utils.GetStockHistory(symbol, strconv.Itoa(year) + "-01-02", strconv.Itoa(year + 1) + "-01-01")
+
+		if err != nil {
+			log.Println(err.Error())
+		}
+
+		Q1Low, Q1High := s.GetQuarterSupportResistance(histories, 0, 62)
+		quarters = append(quarters, &dto.QuarterHistory{Quarter: strconv.Itoa(year) + "-Q1", High: Q1High, Low: Q1Low})
+
+		Q2Low, Q2High := s.GetQuarterSupportResistance(histories, 63, 124)
+		quarters = append(quarters, &dto.QuarterHistory{Quarter: strconv.Itoa(year) + "-Q2", High: Q2High, Low: Q2Low})
+
+		Q3Low, Q3High := s.GetQuarterSupportResistance(histories, 125, 188)
+		quarters = append(quarters, &dto.QuarterHistory{Quarter: strconv.Itoa(year) + "-Q3", High: Q3High, Low: Q3Low})
+
+		Q4Low, Q4High := s.GetQuarterSupportResistance(histories, 189, len(histories))
+		quarters = append(quarters, &dto.QuarterHistory{Quarter: strconv.Itoa(year) + "-Q4", High: Q4High, Low: Q4Low})
+
+		ctx <- quarters
+		wg.Done()
+		return
 }
 
 func (s TechnicalService) GetQuarterSupportResistance(histories []*dto.StockHistory, startRange int, endRange int) (support dto.QuarterDetail, resistance dto.QuarterDetail) {

@@ -57,7 +57,7 @@ var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 				symbol := p.Args["symbol"].(string)
 				fromYear := p.Args["fromYear"].(int)
 				
-				result, err := r.Technical.GetQuarterHistories(symbol, fromYear)
+				result, err := r.Technical.GetQuarterAnalysis(symbol, fromYear)
 				
 				if err != nil {
 					return nil, err

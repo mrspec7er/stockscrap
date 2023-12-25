@@ -82,23 +82,23 @@ func (u UtilService) GetStockHistory(symbol string, fromDate string, toDate stri
 
 func (u UtilService) GoApiGetHistories(symbol string, fromDate string, toDate string) ([]*dto.StockHistory, error) {
 	res, err := http.Get("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
-		fmt.Println("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
-	
-		if err != nil {
-			return nil, err
-		}
-	
-		streamData, err := io.ReadAll(res.Body)
-	
-		if err != nil {
-			return nil, err
-		}
-	
-		convertedData := dto.StockHistoryApiResponse{}
-		err = json.Unmarshal(streamData, &convertedData)
-		if err != nil {
-			return nil, err
-		}
+	fmt.Println("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
 
-		return convertedData.Data.Results, nil
+	if err != nil {
+		return nil, err
+	}
+
+	streamData, err := io.ReadAll(res.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	convertedData := dto.StockHistoryApiResponse{}
+	err = json.Unmarshal(streamData, &convertedData)
+	if err != nil {
+		return nil, err
+	}
+
+	return convertedData.Data.Results, nil
 }
