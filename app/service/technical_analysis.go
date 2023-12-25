@@ -30,7 +30,7 @@ type TechnicalService struct{
 func (s TechnicalService) GetQuarterHistories(symbol string, fromYear int) (StockQuarterHistories, error) {
 	quarters := []*QuarterHistory{}
 
-	for i := fromYear; i < time.Now().Year(); i++ {
+	for i := fromYear; i <= time.Now().Year(); i++ {
 
 		histories, err := s.Utils.GetStockHistory(symbol, strconv.Itoa(i) + "-01-02", strconv.Itoa(i + 1) + "-01-01")
 
