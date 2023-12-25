@@ -9,7 +9,7 @@ import (
 
 func main()  {
 	h := handler.New(&handler.Config{
-		Schema: &schema.StockHistorySchema,
+		Schema: &schema.StockTechnicalAnalysisSchema,
 		Pretty: true,
 		GraphiQL: false,
 	})

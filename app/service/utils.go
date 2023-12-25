@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 
 	"github.com/gocolly/colly"
 )
@@ -80,28 +81,33 @@ func DataScrapper()  {
 
 }
 
-func GetStockHistory(symbol string, fromDate string, toDate string) []*StockHistory {
+func GetStockHistory(symbol string, fromDate string, toDate string) ([]*StockHistory, error) {
 	res, err := http.Get("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
+	fmt.Println("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
 
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, err
 	}
 
 	streamData, err := io.ReadAll(res.Body)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, err
 	}
 
 	convertedData := StockHistoryApiResponse{}
 	err = json.Unmarshal(streamData, &convertedData)
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, err
 	}
 
 	// for _, s := range convertedData.Data.Results {
 	// 	fmt.Println(s)
 	// }
 
-	return convertedData.Data.Results
+	result := convertedData.Data.Results
+
+	slices.Reverse(result)
+
+	return result, nil
 }
