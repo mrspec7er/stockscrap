@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,9 +10,12 @@ import (
 
 	"github.com/gocolly/colly"
 	"github.com/mrspec7er/stockscrap/app/dto"
+	"github.com/mrspec7er/stockscrap/app/repository"
 )
 
-type UtilService struct {}
+type UtilService struct {
+	Redis repository.Redis
+}
 
 func (UtilService) DataScrapper()  {	
 	c := colly.NewCollector(
@@ -56,29 +60,45 @@ func (UtilService) DataScrapper()  {
 
 }
 
-func (UtilService) GetStockHistory(symbol string, fromDate string, toDate string) ([]*dto.StockHistory, error) {
-	res, err := http.Get("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
-	fmt.Println("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
+func (u UtilService) GetStockHistory(symbol string, fromDate string, toDate string) ([]*dto.StockHistory, error) {
+	key := symbol + "-" + fromDate + "-" + toDate
+	result := []*dto.StockHistory{}
+	result, err := u.Redis.Retrieve(key)
 
-	if err != nil {
-		return nil, err
+	if err != nil {	
+		result, err = u.GoApiGetHistories(symbol, fromDate, toDate)
+
+		if len(result) == 0 || err != nil {
+			return nil, errors.New("Invalid symbol or date type")
+		}
+
+		u.Redis.CacheHistory(key, result)
 	}
-
-	streamData, err := io.ReadAll(res.Body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	convertedData := dto.StockHistoryApiResponse{}
-	err = json.Unmarshal(streamData, &convertedData)
-	if err != nil {
-		return nil, err
-	}
-
-	result := convertedData.Data.Results
 
 	slices.Reverse(result)
 
 	return result, nil
+}
+
+func (u UtilService) GoApiGetHistories(symbol string, fromDate string, toDate string) ([]*dto.StockHistory, error) {
+	res, err := http.Get("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
+		fmt.Println("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
+	
+		if err != nil {
+			return nil, err
+		}
+	
+		streamData, err := io.ReadAll(res.Body)
+	
+		if err != nil {
+			return nil, err
+		}
+	
+		convertedData := dto.StockHistoryApiResponse{}
+		err = json.Unmarshal(streamData, &convertedData)
+		if err != nil {
+			return nil, err
+		}
+
+		return convertedData.Data.Results, nil
 }
