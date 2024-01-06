@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,7 +16,7 @@ type UtilService struct {
 	Redis repository.Redis
 }
 
-func (UtilService) DataScrapper()  {	
+func (UtilService) InformationScrapper()  {	
 	c := colly.NewCollector(
 		colly.AllowedDomains("id.tradingview.com"),
 	)
@@ -57,19 +56,18 @@ func (UtilService) DataScrapper()  {
 	for _, r := range recommendation {
 		fmt.Println(*r)
 	}
-
 }
 
 func (u UtilService) GetStockHistory(symbol string, fromDate string, toDate string) ([]*dto.StockHistory, error) {
 	key := symbol + "-" + fromDate + "-" + toDate
 	result := []*dto.StockHistory{}
-	result, err := u.Redis.Retrieve(key)
+	err := u.Redis.Retrieve(key, &result)
 
 	if err != nil {	
-		result, err = u.GoApiGetHistories(symbol, fromDate, toDate)
+		result, err = u.GoApiFetchData(symbol, fromDate, toDate)
 
 		if len(result) == 0 || err != nil {
-			return nil, errors.New("Invalid symbol or date type")
+			return nil, err
 		}
 
 		u.Redis.CacheHistory(key, result)
@@ -80,7 +78,7 @@ func (u UtilService) GetStockHistory(symbol string, fromDate string, toDate stri
 	return result, nil
 }
 
-func (u UtilService) GoApiGetHistories(symbol string, fromDate string, toDate string) ([]*dto.StockHistory, error) {
+func (u UtilService) GoApiFetchData(symbol string, fromDate string, toDate string) ([]*dto.StockHistory, error) {
 	res, err := http.Get("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
 	fmt.Println("https://api.goapi.io/stock/idx/" + symbol + "/historical?from=" + fromDate + "&to=" + toDate + "&api_key=cd818a59-52d0-51cd-bd66-fa8c6e45")
 

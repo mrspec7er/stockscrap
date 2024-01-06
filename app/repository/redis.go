@@ -26,19 +26,18 @@ func (Redis) Client() *redis.Client {
 	return client
 }
 
-func (r Redis) Retrieve(key string) ([]*dto.StockHistory, error) {
+func (r Redis) Retrieve(key string, histories *[]*dto.StockHistory) (error) {
 	ctx := context.TODO()
-	result := []*dto.StockHistory{}
 
 	historiesStringified, err := r.Client().Get(ctx, key).Result()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = json.Unmarshal([]byte(historiesStringified), &result)
+	err = json.Unmarshal([]byte(historiesStringified), &histories)
 
-	return result, nil
+	return nil
 }
 
 func (r Redis) CacheHistory(key string, data []*dto.StockHistory) error {
