@@ -7,10 +7,10 @@ import (
 	"github.com/mrspec7er/stockscrap/app/schema"
 )
 
-func main()  {
+func main() {
 	h := handler.New(&handler.Config{
-		Schema: &schema.StockTechnicalAnalysisSchema,
-		Pretty: true,
+		Schema:   &schema.StockTechnicalAnalysisSchema,
+		Pretty:   true,
 		GraphiQL: false,
 	})
 

@@ -9,23 +9,21 @@ import (
 	"github.com/mrspec7er/stockscrap/app/dto"
 )
 
-
-
-type AnalyticService struct{
+type AnalyticService struct {
 	Utils UtilService
 }
 
 func (s AnalyticService) GetQuarterAnalytic(symbol string, fromYear int) (dto.StockQuarterHistories, error) {
 	quarters := []*dto.QuarterHistory{}
 
-	ctx := make(chan []*dto.QuarterHistory, (time.Now().Year()) - fromYear + 1)
+	ctx := make(chan []*dto.QuarterHistory, (time.Now().Year())-fromYear+1)
 	wg := &sync.WaitGroup{}
 	wg.Add(time.Now().Year() - fromYear + 1)
 
 	for i := fromYear; i <= time.Now().Year(); i++ {
-		
+
 		go s.GetQuarterHistories(symbol, i, ctx, wg)
-		
+
 	}
 
 	wg.Wait()
@@ -47,7 +45,7 @@ func (s AnalyticService) GetQuarterAnalytic(symbol string, fromYear int) (dto.St
 
 func (s AnalyticService) GetQuarterHistories(symbol string, year int, ctx chan []*dto.QuarterHistory, wg *sync.WaitGroup) {
 	quarters := []*dto.QuarterHistory{}
-	histories, err := s.Utils.GetStockHistory(symbol, strconv.Itoa(year) + "-01-02", strconv.Itoa(year + 1) + "-01-01")
+	histories, err := s.Utils.GetStockHistory(symbol, strconv.Itoa(year)+"-01-02", strconv.Itoa(year+1)+"-01-01")
 
 	dataLength := len(histories)
 
@@ -93,7 +91,7 @@ func (s AnalyticService) GetQuarterHistories(symbol string, year int, ctx chan [
 func (s AnalyticService) GetQuarterSupportResistance(histories []*dto.StockHistory, startRange int, endRange int) (support dto.QuarterDetail, resistance dto.QuarterDetail) {
 	supportPrice := 9999999999
 	supportDate := "2000-01-02"
-	supportVolume := float64(0) 
+	supportVolume := float64(0)
 
 	resistancePrice := 0
 	resistanceDate := "2000-01-02"

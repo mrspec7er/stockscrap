@@ -12,21 +12,20 @@ import (
 type Redis struct{}
 
 func (Redis) Client() *redis.Client {
-    redisAddress := "redis-16038.c295.ap-southeast-1-1.ec2.cloud.redislabs.com:16038"
-    redisUsername := "default"
-    redisPassword := "3qZ5vlxsCJBV5babpo9XY3KuDD50pTtW"
+	redisAddress := "redis-16038.c295.ap-southeast-1-1.ec2.cloud.redislabs.com:16038"
+	redisUsername := "default"
+	redisPassword := "3qZ5vlxsCJBV5babpo9XY3KuDD50pTtW"
 	client := redis.NewClient(&redis.Options{
-        Addr:	  redisAddress,
-        Password: redisPassword,
-        Username: redisUsername,
-        DB:		  0,
-     
-    })
+		Addr:     redisAddress,
+		Password: redisPassword,
+		Username: redisUsername,
+		DB:       0,
+	})
 
 	return client
 }
 
-func (r Redis) Retrieve(key string, histories *[]*dto.StockHistory) (error) {
+func (r Redis) Retrieve(key string, histories *[]*dto.StockHistory) error {
 	ctx := context.TODO()
 
 	historiesStringified, err := r.Client().Get(ctx, key).Result()

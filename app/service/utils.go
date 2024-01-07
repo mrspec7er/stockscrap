@@ -16,7 +16,7 @@ type UtilService struct {
 	Redis repository.Redis
 }
 
-func (UtilService) InformationScrapper()  {	
+func (UtilService) InformationScrapper() {
 	c := colly.NewCollector(
 		colly.AllowedDomains("id.tradingview.com"),
 	)
@@ -29,13 +29,13 @@ func (UtilService) InformationScrapper()  {
 		value := e.DOM.Find(".value-GgmpMpKr").Contents().Not(".measureUnit-lQwbiR8R").Text()
 
 		statistic[label] = value
-		
+
 	})
 
 	var recommendation []*dto.Recommendation
 
 	c.OnHTML(".card-exterior-Us1ZHpvJ", func(e *colly.HTMLElement) {
-		
+
 		title := e.DOM.Find(".title-tkslJwxl").Text()
 		body := e.DOM.Find(".line-clamp-content-t3qFZvNN").Text()
 
@@ -63,7 +63,7 @@ func (u UtilService) GetStockHistory(symbol string, fromDate string, toDate stri
 	result := []*dto.StockHistory{}
 	err := u.Redis.Retrieve(key, &result)
 
-	if err != nil {	
+	if err != nil {
 		result, err = u.GoApiFetchData(symbol, fromDate, toDate)
 
 		if len(result) == 0 || err != nil {

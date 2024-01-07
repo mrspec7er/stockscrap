@@ -7,7 +7,7 @@ import (
 
 type TechnicalResolver struct {
 	Analytic service.AnalyticService
-	Utils service.UtilService
+	Utils    service.UtilService
 }
 
 var r TechnicalResolver
@@ -20,7 +20,6 @@ var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 			Args: graphql.FieldConfigArgument{
 				"symbol": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
-						
 				},
 				"fromDate": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
@@ -33,7 +32,7 @@ var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 				symbol := p.Args["symbol"].(string)
 				fromDate := p.Args["fromDate"].(string)
 				toDate := p.Args["toDate"].(string)
-				
+
 				result, err := r.Utils.GetStockHistory(symbol, fromDate, toDate)
 				if err != nil {
 					return nil, err
@@ -47,7 +46,6 @@ var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 			Args: graphql.FieldConfigArgument{
 				"symbol": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
-						
 				},
 				"fromYear": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.Int),
@@ -56,9 +54,9 @@ var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				symbol := p.Args["symbol"].(string)
 				fromYear := p.Args["fromYear"].(int)
-				
+
 				result, err := r.Analytic.GetQuarterAnalytic(symbol, fromYear)
-				
+
 				if err != nil {
 					return nil, err
 				}
@@ -141,5 +139,5 @@ var stockQuarterHistoriesType = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var StockTechnicalAnalysisSchema, _ = graphql.NewSchema(graphql.SchemaConfig{
-	Query:    rootQuery,
+	Query: rootQuery,
 })
